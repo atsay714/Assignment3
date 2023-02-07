@@ -1,4 +1,4 @@
-package com.assignment2;
+package com.assignment3;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;

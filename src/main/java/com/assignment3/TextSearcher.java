@@ -1,4 +1,4 @@
-package com.assignment2;
+package com.assignment3;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -26,60 +26,66 @@ class TextSearcher {
      * @throws IOException if there is an error reading the file
      */
     public void searchForText(String searchString) throws IOException {
-        BufferedReader reader = null;
+        String searchWord = searchString;
+        String line;
+        BufferedReader br = null;
+        boolean foundResults = false;
+
         try {
-            String searchWord = searchString;
-            String line;
+            br = new BufferedReader(new FileReader(filePath));
+            int count = 0;
             
-            try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
-                int count = 0;
+            boolean isHeader = true;
+            while ((line = br.readLine()) != null) {
+                if(isHeader){
+                    System.out.format("%-60s %20s %35s","Title","Funds Raised Percent","Close Date\n");
+                    isHeader = false;
+                    continue;
+                }
                 
-                boolean isHeader = true;
-                while ((line = br.readLine()) != null) {
-                    if(isHeader){
-                        isHeader = false;
-                        continue;
-                    }
-                    
-                    List<String> data = new ArrayList<>();
-                    data = SplitLine(line);
+                List<String> data = new ArrayList<>();
+                data = SplitLine(line);
 
-                    count += data.size();
-                    
-                    while(count < 25) {
-                        String line2 = br.readLine();
-                        line += line2;
-                        List<String> data2 = new ArrayList<>();
-                        data2 = SplitLine(line);
-                        count = data2.size();
-                        if(count == 25) {
-                            data = data2;
-                        }
+                count += data.size();
+                
+                while(count < 25) {
+                    String line2 = br.readLine();
+                    line += line2;
+                    List<String> data2 = new ArrayList<>();
+                    data2 = SplitLine(line);
+                    count = data2.size();
+                    if(count == 25) {
+                        data = data2;
                     }
+                }
 
-                    if(count == 25)
-                    {
-                        for (int i = 0; i < data.size(); i++) {
-                            data.set(i,data.get(i).replaceAll("^\"|\"$", ""));
-                        }
-                        if (data.get(data.size() - 1).contains(searchWord)) {
-                            System.out.println("Title: " + data.get(data.size() - 1) + ". Funds Raised Percent: " + data.get(7) + ". Close Date: " + data.get(4));
-                        }
-                        count = 0;
-                        data = new ArrayList<>();
+                if(count == 25)
+                {
+                    for (int i = 0; i < data.size(); i++) {
+                        data.set(i,data.get(i).replaceAll("^\"|\"$", ""));
                     }
-                    else if(count > 25){
-                        throw new IOException("Error reading a line");
+                    if (data.get(data.size() - 1).contains(searchWord)) {
+                        foundResults = true;
+                        System.out.format("%-60s %20s %35s",data.get(data.size() - 1),data.get(7),data.get(4)+"\n");
                     }
+                    count = 0;
+                    data = new ArrayList<>();
+                }
+                else if(count > 25){
+                    throw new IOException("Error reading a line");
                 }
             }
         } catch (FileNotFoundException e) {
             System.out.println("Error: File not found at " + filePath);
         } catch (IOException e) {
             System.out.println("Error: Unable to read from file at " + filePath);
-        } finally {
-            if (reader != null) {
-                reader.close();
+        }
+        finally {
+            try { br.close(); }
+            catch(IOException e) { System.out.println("An error occurred while closing the file: " + e.getMessage()); }
+            if(!foundResults)
+            {
+                System.out.println("No results found");
             }
         }
     }
